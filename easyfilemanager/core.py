@@ -132,13 +132,13 @@ class FileManager(UserDict):
         self.file_types[name] = 'yaml'
         with open(self.get_path(name), "w+") as f:
             if isinstance(data, Iterable):
-                return yaml.dump_all(data)
+                return yaml.dump_all(data, f, **kwargs)
             yaml.dump(data, f, **kwargs)
 
     def exists(self, name: str) -> bool:
         return exists(self.get_path(name))
 
-    def smart_save(self, name, data):
+    def smart_save(self, name, data, **kwargs):
         """
         Automatically saves based on the file type.
         Supports JSON/YAML and will do a regular save for everything else
@@ -146,8 +146,8 @@ class FileManager(UserDict):
 
         ext = os.path.splitext(self[name])[1]
         if ext == '.yaml':
-            self.yaml_save(name, data)
+            self.yaml_save(name, data, **kwargs)
         elif ext == '.json':
-            self.json_save(name, data)
+            self.json_save(name, data, **kwargs)
         else:
             self.save(name, data)

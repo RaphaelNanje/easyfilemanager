@@ -1,5 +1,7 @@
 import unittest
 
+import yaml
+
 from easyfilemanager import FileManager
 
 file_manager = FileManager()
@@ -47,6 +49,15 @@ class MyTestCase(unittest.TestCase):
         self.assertIsNotNone(file_manager.smart_load('testy'))
         file_manager.smart_save('testt', data)
         self.assertIsNotNone(file_manager.smart_load('testt'))
+
+    def test_yaml(self):
+        data = [list(range(100))]
+        file_manager.register_file('yaml1.yaml', 'test_files/', short_name='yaml1')
+
+        file_manager.yaml_save('yaml1', data, default_flow_style=False, Dumper=yaml.Dumper)
+        data = file_manager.smart_load('yaml1')
+
+        self.assertTrue(data)
 
     @classmethod
     def tearDownClass(cls) -> None:
