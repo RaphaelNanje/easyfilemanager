@@ -1,7 +1,8 @@
-# Easy-App-Dirs
-Seamlessly manage application cache, config, data, and log files. Wraps around appdirs.
+# EasyFileManager
+Seamlessly manage files for you scripts
 
 
 ## ToDo
 - [ ] Add file categories
 - [ ] Add regex searching to directory_load()
+- [ ] Add examples
