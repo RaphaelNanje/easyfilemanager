@@ -131,7 +131,9 @@ class FileManager(UserDict):
     def yaml_save(self, name: str, data, **kwargs):
         self.file_types[name] = 'yaml'
         with open(self.get_path(name), "w+") as f:
-            yaml.dump(data, f, indent=2, **kwargs)
+            if isinstance(data, Iterable):
+                return yaml.dump_all(data)
+            yaml.dump(data, f, **kwargs)
 
     def exists(self, name: str) -> bool:
         return exists(self.get_path(name))
