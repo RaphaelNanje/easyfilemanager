@@ -104,11 +104,13 @@ class FileManager(UserDict):
         with open(self.get_path(name), "r") as f:
             return json.load(f, **kwargs)
 
-    def yaml_load(self, name: str, loader=yaml.FullLoader) -> dict:
+    def yaml_load(self, name: str, loader=yaml.FullLoader, iterable=True) -> object:
         self.file_types[name] = 'yaml'
         if self.verbose:
             logger.debug('loading %s', self[name])
         with open(self.get_path(name), "r") as f:
+            if iterable:
+                return list(yaml.load_all(f, loader))
             return yaml.load(f, loader)
 
     def save(self, name: str, data):

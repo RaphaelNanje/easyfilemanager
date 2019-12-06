@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='easyfilemanager',
-    version='0.0.1',
+    version='0.1.0',
     description='A library that makes managing data files simple',
     author='Raphael',
     author_email='rtnanje@gmail.com',
