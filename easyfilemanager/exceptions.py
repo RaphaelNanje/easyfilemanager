@@ -9,8 +9,8 @@ class NameAlreadyRegisteredError(Error):
 
 
 class InvalidDataFormatError(Error):
-    def __init__(self, message, name, path) -> None:
-        super().__init__(message, name, path)
+    def __init__(self, message, name, path, error) -> None:
+        super().__init__(message, name, path, error)
 
 
 class EmptyFileError(Error):

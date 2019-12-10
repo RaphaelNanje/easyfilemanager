@@ -8,7 +8,6 @@ from typing import Iterable, List, Union, Optional
 import pandas
 import yaml
 from logzero import logger
-from pandas.errors import EmptyDataError
 
 from .exceptions import NameAlreadyRegisteredError, InvalidDataFormatError
 
@@ -91,16 +90,10 @@ class FileManager(UserDict):
             else:
                 return f.read()
 
-    def csv_load(self, name: str, **kwargs) -> List:
+    def csv_load(self, name: str, headers=True) -> List:
         if self.is_empty(name):
             return []
-        try:
-            df = pandas.read_csv(self.get_path(name), **kwargs)
-        except EmptyDataError:
-            return []
-        data = df.values
-        return [','.join(str(d) if not isinstance(d, str) else d) for d in
-                data]
+        return self.load(name)[1 if headers else 0:]
 
     def smart_load(self, name, **kwargs) -> object:
         """
@@ -158,10 +151,10 @@ class FileManager(UserDict):
         try:
             pandas.DataFrame(data).to_csv(self.get_path(name), header=headers,
                                           index=False, **kwargs)
-        except ValueError:
+        except ValueError as ve:
             raise InvalidDataFormatError(
                     'Data does not match the number of headers',
-                    name, self.get_path(name))
+                    name, self.get_path(name), ve)
 
     def json_save(self, name: str, data, default=None, **kwargs):
         self.file_types[name] = 'json'

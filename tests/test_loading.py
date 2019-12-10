@@ -31,6 +31,14 @@ class TestLoading(unittest.TestCase):
         load = file_manager.smart_load('csv')
         self.assertEqual(load, [])
 
+    def test_csv3(self):
+        file_manager.register_file('pairs.csv', self.folder, 'csv')
+        # file_manager.register_file('pairs.csv', './props/', 'csv')
+        data = [list(range(3)) for _ in range(5)]
+        file_manager.csv_save('csv', data, headers='a,b,c'.split(','))
+        load = file_manager.csv_load('csv')
+        self.assertIsInstance(load, list)
+
     def tearDown(self) -> None:
         file_manager.clear()
 
