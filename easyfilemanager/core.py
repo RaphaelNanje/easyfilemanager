@@ -3,8 +3,9 @@ import os
 from collections import UserDict
 from os import makedirs, walk, listdir
 from os.path import join, exists, splitext, isfile
-from typing import Iterable
+from typing import Iterable, Any, List
 
+import pandas
 import yaml
 from logzero import logger
 
@@ -14,7 +15,8 @@ from .exceptions import NameAlreadyRegisteredError
 class FileManager(UserDict):
     current_file_dir = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, log_name="logs.log", override=False, verbose=False, **kwargs):
+    def __init__(self, log_name="logs.log", override=False, verbose=False,
+                 **kwargs):
         """
         :param override: Set this to True to override paths of names that have already been registered
         """
@@ -24,17 +26,20 @@ class FileManager(UserDict):
         self.override = override
         self.verbose = verbose
 
-    def register_file(self, file_name: str, path: str = '.', short_name: str = None):
+    def register_file(self, file_name: str, path: str = '.',
+                      short_name: str = None):
         if file_name in self:
             if join(path, file_name) == self[file_name]:
                 return self[file_name]
-            elif not self.override and self[file_name] != join(path, file_name):
+            elif not self.override and self[file_name] != join(path,
+                                                               file_name):
                 raise NameAlreadyRegisteredError(
-                    f"Override is set to {self.override} and '{file_name}' has already been registered.", file_name,
-                    path)
+                        f"Override is set to {self.override} and '{file_name}' has already been registered.",
+                        file_name,
+                        path)
             else:
                 logger.warning(
-                    f"'{file_name}' already exists and is pointing to '{self[file_name]}'... Overriding.")
+                        f"'{file_name}' already exists and is pointing to '{self[file_name]}'... Overriding.")
         if not exists(path):
             makedirs(path, exist_ok=True)
         path = join(path, file_name)
@@ -56,14 +61,17 @@ class FileManager(UserDict):
         if not recursive:
             files = [f for f in listdir(path) if isfile(join(path, f))]
             for file in files:
-                self.register_file(file, path, splitext(file)[0] if splitext(file)[0] != file else None)
+                self.register_file(file, path,
+                                   splitext(file)[0] if splitext(file)[
+                                                            0] != file else None)
             return files
         else:
             files_list = []
             for root, dirs, files in walk(path, topdown=True):
                 for name in files:
                     file_name = name
-                    short_name = splitext(name)[0] if splitext(name)[0] != file_name else None
+                    short_name = splitext(name)[0] if splitext(name)[
+                                                          0] != file_name else None
                     self.register_file(file_name, root, short_name)
                     files_list.append(file_name)
             return files_list
@@ -82,7 +90,12 @@ class FileManager(UserDict):
             else:
                 return f.read()
 
-    def smart_load(self, name):
+    def csv_load(self, name: str, **kwargs):
+        df = pandas.read_csv(self.get_path(name), **kwargs)
+        data = df.values
+        return [','.join(d) for d in data]
+
+    def smart_load(self, name, **kwargs):
         """
         Automatically loads based on the file type.
         Supports JSON/YAML and will do a regular load for everything else
@@ -91,9 +104,11 @@ class FileManager(UserDict):
         ext = os.path.splitext(self[name])[1]
 
         if ext == '.yaml':
-            return self.yaml_load(name)
+            return self.yaml_load(name, **kwargs)
         elif ext == '.json':
-            return self.json_load(name)
+            return self.json_load(name, **kwargs)
+        elif ext == '.csv':
+            return self.csv_load(name, **kwargs)
 
         return self.load(name)
 
@@ -104,7 +119,8 @@ class FileManager(UserDict):
         with open(self.get_path(name), "r") as f:
             return json.load(f, **kwargs)
 
-    def yaml_load(self, name: str, loader=yaml.FullLoader, iterable=True) -> object:
+    def yaml_load(self, name: str, loader=yaml.FullLoader,
+                  iterable=True) -> object:
         self.file_types[name] = 'yaml'
         if self.verbose:
             logger.debug('loading %s', self[name])
@@ -121,7 +137,14 @@ class FileManager(UserDict):
             if not isinstance(data, Iterable):
                 f.write(data)
             else:
-                f.write('\n'.join([f if isinstance(f, str) else str(f) for f in data]))
+                f.write('\n'.join(
+                        [f if isinstance(f, str) else str(f) for f in data]))
+
+    def csv_save(self, name: str, data: Any, headers: List[str], **kwargs):
+        if self.verbose:
+            logger.debug('saving csv data to %s...', self[name])
+        pandas.DataFrame(data).to_csv(self.get_path(name), header=headers,
+                                      index=False, **kwargs)
 
     def json_save(self, name: str, data, default=None, **kwargs):
         self.file_types[name] = 'json'
@@ -149,5 +172,7 @@ class FileManager(UserDict):
             self.yaml_save(name, data, **kwargs)
         elif ext == '.json':
             self.json_save(name, data, **kwargs)
+        elif ext == '.csv':
+            self.csv_save(name, data, **kwargs)
         else:
             self.save(name, data)

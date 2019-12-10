@@ -1,3 +1,4 @@
+import os
 import unittest
 
 import yaml
@@ -8,11 +9,10 @@ file_manager = FileManager()
 
 
 class MyTestCase(unittest.TestCase):
+    folder = './testfiles/'
 
     @classmethod
     def setUpClass(cls) -> None:
-        super().setUpClass()
-        import os
         os.mkdir('testfiles')
         for i, folder in enumerate('testfolder' + str(i) for i in range(5)):
             if not os.path.exists(folder):
@@ -37,10 +37,13 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue('testt' in file_manager)
 
     def test_save(self):
+        file_manager.register_file('test.json', './testfiles', 'testj')
+        file_manager.register_file('test.yaml', './testfiles', 'testy')
+        file_manager.register_file('test.txt', './testfiles', 'testt')
         data = dict(
-            a=1,
-            b=2,
-            c=3
+                a=1,
+                b=2,
+                c=3
         )
 
         file_manager.smart_save('testj', data)
@@ -52,12 +55,33 @@ class MyTestCase(unittest.TestCase):
 
     def test_yaml(self):
         data = [list(range(100))]
-        file_manager.register_file('yaml1.yaml', 'test_files/', short_name='yaml1')
+        file_manager.register_file('yaml1.yaml', 'testfiles/',
+                                   short_name='yaml1')
 
-        file_manager.yaml_save('yaml1', data, default_flow_style=False, Dumper=yaml.Dumper)
+        file_manager.yaml_save('yaml1', data, default_flow_style=False,
+                               Dumper=yaml.Dumper)
         data = file_manager.smart_load('yaml1')
 
         self.assertTrue(data)
+
+    def test_csv(self):
+        file_manager.register_file('test_numbers.csv', './testfiles/', 'csv')
+        data = [[f'test{i}', f'data{i}', f'row{i}'] for i in range(100)]
+        file_manager.csv_save('csv', data, 'test,data,row'.split(','))
+
+        load = file_manager.csv_load('csv')
+        self.assertTrue(data, load)
+
+    def test_csv_failed(self):
+        file_manager.register_file('test2.csv', self.folder, 'csv')
+        data = ' '
+        with open(file_manager.get_path('csv'), 'w') as f:
+            f.write(data)
+        load = file_manager.load('csv')
+        self.assertEqual(load, [''])
+
+    def tearDown(self) -> None:
+        file_manager.clear()
 
     @classmethod
     def tearDownClass(cls) -> None:
