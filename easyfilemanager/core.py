@@ -99,7 +99,8 @@ class FileManager(UserDict):
         except EmptyDataError:
             return []
         data = df.values
-        return [','.join(d) for d in data]
+        return [','.join(str(d) if not isinstance(d, str) else d) for d in
+                data]
 
     def smart_load(self, name, **kwargs) -> object:
         """
