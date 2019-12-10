@@ -90,10 +90,11 @@ class FileManager(UserDict):
             else:
                 return f.read()
 
-    def csv_load(self, name: str, headers=True) -> List:
+    def csv_load(self, name: str, headers=True, separator=',') -> List:
         if self.is_empty(name):
             return []
-        return self.load(name)[1 if headers else 0:]
+        data = self.load(name)[1 if headers else 0:]
+        return [tuple(d.split(separator)) for d in data]
 
     def smart_load(self, name, **kwargs) -> object:
         """
