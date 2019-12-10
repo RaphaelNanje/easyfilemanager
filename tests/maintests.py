@@ -9,7 +9,7 @@ from easyfilemanager.exceptions import InvalidDataFormatError
 file_manager = FileManager()
 
 
-class MyTestCase(unittest.TestCase):
+class TestMain(unittest.TestCase):
     folder = './testfiles/'
 
     @classmethod
@@ -88,21 +88,16 @@ class MyTestCase(unittest.TestCase):
         self.assertRaises(InvalidDataFormatError, file_manager.csv_save,
                           *('csv', data, 'test,data,row'.split(',')))
 
-    def test_csv_failed2(self):
-        file_manager.register_file('test2.csv', self.folder, 'csv')
-        data = ' '
-        with open(file_manager.get_path('csv'), 'w') as f:
+    def test_is_empty(self):
+        file_manager.register_file('test2.txt', self.folder, 'txt')
+        file_manager.register_file('test3.txt', self.folder, 'txt3')
+        data = ''
+        with open(file_manager.get_path('txt'), 'w') as f:
             f.write(data)
-        load = file_manager.load('csv')
-        self.assertEqual(load, [''])
-
-    def test_load_failed(self):
-        file_manager.register_file('test2.csv', self.folder, 'csv')
-        data = ' '
-        with open(file_manager.get_path('csv'), 'w') as f:
-            f.write(data)
-        load = file_manager.smart_load('csv')
-        self.assertEqual(load, [])
+        with open(file_manager.get_path('txt3'), 'w') as f:
+            f.write('test--')
+        self.assertTrue(file_manager.is_empty('txt'))
+        self.assertFalse(file_manager.is_empty('txt3'))
 
     def tearDown(self) -> None:
         file_manager.clear()

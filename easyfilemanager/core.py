@@ -3,7 +3,7 @@ import os
 from collections import UserDict
 from os import makedirs, walk, listdir
 from os.path import join, exists, splitext, isfile
-from typing import Iterable, List, Union
+from typing import Iterable, List, Union, Optional
 
 import pandas
 import yaml
@@ -77,7 +77,7 @@ class FileManager(UserDict):
                     files_list.append(file_name)
             return files_list
 
-    def load(self, name: str, split=True, strip=True):
+    def load(self, name: str, split=True, strip=True) -> object:
         """
         :param split: readlines() instead of read() if True
         :param strip: call strip() on each line
@@ -92,6 +92,8 @@ class FileManager(UserDict):
                 return f.read()
 
     def csv_load(self, name: str, **kwargs) -> List:
+        if self.is_empty(name):
+            return []
         try:
             df = pandas.read_csv(self.get_path(name), **kwargs)
         except EmptyDataError:
@@ -99,7 +101,7 @@ class FileManager(UserDict):
         data = df.values
         return [','.join(d) for d in data]
 
-    def smart_load(self, name, **kwargs):
+    def smart_load(self, name, **kwargs) -> object:
         """
         Automatically loads based on the file type.
         Supports JSON/YAML and will do a regular load for everything else
@@ -118,13 +120,15 @@ class FileManager(UserDict):
 
     def json_load(self, name: str, **kwargs) -> dict:
         self.file_types[name] = 'json'
+        if self.is_empty(name):
+            return {}
         if self.verbose:
             logger.debug('loading %s', self[name])
         with open(self.get_path(name), "r") as f:
             return json.load(f, **kwargs)
 
     def yaml_load(self, name: str, loader=yaml.FullLoader,
-                  iterable=True) -> object:
+                  iterable=True) -> Optional[object]:
         self.file_types[name] = 'yaml'
         if self.verbose:
             logger.debug('loading %s', self[name])
@@ -188,3 +192,13 @@ class FileManager(UserDict):
             self.csv_save(name, data, **kwargs)
         else:
             self.save(name, data)
+
+    def is_empty(self, name: str):
+        try:
+            file = open(self.get_path(name))
+        except FileNotFoundError:
+            return False
+        else:
+            data = file.read()
+            file.close()
+            return not data
