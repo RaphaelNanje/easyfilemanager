@@ -4,6 +4,7 @@ import unittest
 import yaml
 
 from easyfilemanager import FileManager
+from easyfilemanager.exceptions import InvalidDataFormatError
 
 file_manager = FileManager()
 
@@ -72,7 +73,22 @@ class MyTestCase(unittest.TestCase):
         load = file_manager.csv_load('csv')
         self.assertTrue(data, load)
 
+    def test_csv2(self):
+        file_manager.register_file('test_numbers.csv', './testfiles/', 'csv')
+        data = [[f'test{i}', f'data{i}', f'row{i}'] for i in range(100)]
+        file_manager.csv_save('csv', data, 'test,data,row'.split(','))
+
+        load = file_manager.csv_load('csv')
+        self.assertTrue(data, load)
+
     def test_csv_failed(self):
+        file_manager.register_file('test2.csv', self.folder, 'csv')
+        data = [[f'test{i},data{i},row{i}'] for i in range(100)]
+        data.append('1,2,3')
+        self.assertRaises(InvalidDataFormatError, file_manager.csv_save,
+                          *('csv', data, 'test,data,row'.split(',')))
+
+    def test_csv_failed2(self):
         file_manager.register_file('test2.csv', self.folder, 'csv')
         data = ' '
         with open(file_manager.get_path('csv'), 'w') as f:
