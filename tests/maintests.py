@@ -96,6 +96,14 @@ class MyTestCase(unittest.TestCase):
         load = file_manager.load('csv')
         self.assertEqual(load, [''])
 
+    def test_load_failed(self):
+        file_manager.register_file('test2.csv', self.folder, 'csv')
+        data = ' '
+        with open(file_manager.get_path('csv'), 'w') as f:
+            f.write(data)
+        load = file_manager.smart_load('csv')
+        self.assertEqual(load, [])
+
     def tearDown(self) -> None:
         file_manager.clear()
 

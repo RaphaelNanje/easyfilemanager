@@ -8,6 +8,7 @@ from typing import Iterable, List, Union
 import pandas
 import yaml
 from logzero import logger
+from pandas.errors import EmptyDataError
 
 from .exceptions import NameAlreadyRegisteredError, InvalidDataFormatError
 
@@ -90,8 +91,11 @@ class FileManager(UserDict):
             else:
                 return f.read()
 
-    def csv_load(self, name: str, **kwargs):
-        df = pandas.read_csv(self.get_path(name), **kwargs)
+    def csv_load(self, name: str, **kwargs) -> List:
+        try:
+            df = pandas.read_csv(self.get_path(name), **kwargs)
+        except EmptyDataError:
+            return []
         data = df.values
         return [','.join(d) for d in data]
 
