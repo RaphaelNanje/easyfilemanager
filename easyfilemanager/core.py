@@ -142,12 +142,13 @@ class FileManager(UserDict):
                 f.write('\n'.join(
                         [f if isinstance(f, str) else str(f) for f in data]))
 
-    def csv_save(self, name: str, data: Union[list, set],
+    def csv_save(self, name: str, data: Union[list, set, tuple],
                  headers: str):
         if self.verbose:
             logger.debug('saving csv data to %s...', self[name])
         if not len(data) > 0:
             return
+        data = list(data)
         data.insert(0, headers)
         self.save(name, data)
 
