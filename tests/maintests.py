@@ -76,7 +76,7 @@ class TestMain(unittest.TestCase):
     def test_csv2(self):
         file_manager.register_file('test_numbers.csv', './testfiles/', 'csv')
         data = [[f'test{i}', f'data{i}', f'row{i}'] for i in range(100)]
-        file_manager.csv_save('csv', data, 'test,data,row'.split(','))
+        file_manager.csv_save('csv', data, 'test,data,row')
 
         load = file_manager.csv_load('csv')
         self.assertTrue(data, load)

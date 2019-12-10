@@ -5,11 +5,10 @@ from os import makedirs, walk, listdir
 from os.path import join, exists, splitext, isfile
 from typing import Iterable, List, Union, Optional
 
-import pandas
 import yaml
 from logzero import logger
 
-from .exceptions import NameAlreadyRegisteredError, InvalidDataFormatError
+from .exceptions import NameAlreadyRegisteredError
 
 
 class FileManager(UserDict):
@@ -144,18 +143,13 @@ class FileManager(UserDict):
                         [f if isinstance(f, str) else str(f) for f in data]))
 
     def csv_save(self, name: str, data: Union[list, set],
-                 headers: List[str], **kwargs):
+                 headers: str):
         if self.verbose:
             logger.debug('saving csv data to %s...', self[name])
         if not len(data) > 0:
             return
-        try:
-            pandas.DataFrame(data).to_csv(self.get_path(name), header=headers,
-                                          index=False, **kwargs)
-        except ValueError as ve:
-            raise InvalidDataFormatError(
-                    'Data does not match the number of headers',
-                    name, self.get_path(name), ve)
+        data.insert(0, headers)
+        self.save(name, data)
 
     def json_save(self, name: str, data, default=None, **kwargs):
         self.file_types[name] = 'json'
