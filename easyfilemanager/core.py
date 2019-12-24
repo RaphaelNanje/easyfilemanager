@@ -136,7 +136,8 @@ class FileManager(UserDict):
         if self.verbose:
             logger.debug('saving data to %s...', self[name])
         with open(self.get_path(name), "w+") as f:
-            if not isinstance(data, Iterable):
+            if not isinstance(data, Iterable) or isinstance(data,
+                                                            (str, bytes)):
                 f.write(data)
             else:
                 f.write('\n'.join(
