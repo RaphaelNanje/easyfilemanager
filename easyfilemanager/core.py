@@ -131,11 +131,11 @@ class FileManager(UserDict):
                 return list(yaml.load_all(f, loader))
             return yaml.load(f, loader)
 
-    def save(self, name: str, data):
+    def save(self, name: str, data, mode="w"):
         self.file_types[name] = 'normal'
         if self.verbose:
             logger.debug('saving data to %s...', self[name])
-        with open(self.get_path(name), "w+") as f:
+        with open(self.get_path(name), mode) as f:
             if not isinstance(data, Iterable) or isinstance(data,
                                                             (str, bytes)):
                 f.write(data)
@@ -153,14 +153,14 @@ class FileManager(UserDict):
         data.insert(0, headers)
         self.save(name, data)
 
-    def json_save(self, name: str, data, default=None, **kwargs):
+    def json_save(self, name: str, data, default=None, mode="w", **kwargs):
         self.file_types[name] = 'json'
-        with open(self.get_path(name), "w+") as f:
+        with open(self.get_path(name), mode) as f:
             json.dump(data, f, indent=2, default=default, **kwargs)
 
-    def yaml_save(self, name: str, data, **kwargs):
+    def yaml_save(self, name: str, data, mode="w", **kwargs):
         self.file_types[name] = 'yaml'
-        with open(self.get_path(name), "w+") as f:
+        with open(self.get_path(name), mode) as f:
             if isinstance(data, Iterable):
                 return yaml.dump_all(data, f, **kwargs)
             yaml.dump(data, f, **kwargs)
@@ -168,7 +168,7 @@ class FileManager(UserDict):
     def exists(self, name: str) -> bool:
         return exists(self.get_path(name))
 
-    def smart_save(self, name, data, **kwargs):
+    def smart_save(self, name, data, mode="w", **kwargs):
         """
         Automatically saves based on the file type.
         Supports JSON/YAML and will do a regular save for everything else
@@ -176,20 +176,20 @@ class FileManager(UserDict):
 
         ext = os.path.splitext(self[name])[1]
         if ext == '.yaml':
-            self.yaml_save(name, data, **kwargs)
+            self.yaml_save(name, data, mode=mode, **kwargs)
         elif ext == '.json':
-            self.json_save(name, data, **kwargs)
+            self.json_save(name, data, mode=mode, **kwargs)
         elif ext == '.csv':
-            self.csv_save(name, data, **kwargs)
+            self.csv_save(name, data, mode=mode, **kwargs)
         else:
-            self.save(name, data)
+            self.save(name, data, mode=mode)
 
-    def is_empty(self, name: str):
-        try:
-            file = open(self.get_path(name))
-        except FileNotFoundError:
-            return False
-        else:
-            data = file.read()
-            file.close()
-            return not data
+        def is_empty(self, name: str):
+            try:
+                file = open(self.get_path(name))
+            except FileNotFoundError:
+                return False
+            else:
+                data = file.read()
+                file.close()
+                return not data
