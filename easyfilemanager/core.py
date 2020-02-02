@@ -193,3 +193,9 @@ class FileManager(UserDict):
                 data = file.read()
                 file.close()
                 return not data
+
+    def is_empty(self, name: str) -> bool:
+        """
+        :return: Whether file is empty or not
+        """
+        return os.stat(self[name]).st_size == 0
