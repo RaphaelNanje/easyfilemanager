@@ -144,14 +144,14 @@ class FileManager(UserDict):
                         [f if isinstance(f, str) else str(f) for f in data]))
 
     def csv_save(self, name: str, data: Union[list, set, tuple],
-                 headers: str):
+                 headers: str, mode='w'):
         if self.verbose:
             logger.debug('saving csv data to %s...', self[name])
         if not len(data) > 0:
             return
         data = list(data)
         data.insert(0, headers)
-        self.save(name, data)
+        self.save(name, data, mode)
 
     def json_save(self, name: str, data, default=None, mode="w", **kwargs):
         self.file_types[name] = 'json'
