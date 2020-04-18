@@ -33,12 +33,12 @@ class FileManager(UserDict):
             elif not self.override and self[file_name] != join(path,
                                                                file_name):
                 raise NameAlreadyRegisteredError(
-                        f"Override is set to {self.override} and '{file_name}' has already been registered.",
-                        file_name,
-                        path)
+                    f"Override is set to {self.override} and '{file_name}' has already been registered.",
+                    file_name,
+                    path)
             else:
                 logger.warning(
-                        f"'{file_name}' already exists and is pointing to '{self[file_name]}'... Overriding.")
+                    f"'{file_name}' already exists and is pointing to '{self[file_name]}'... Overriding.")
         if not exists(path):
             makedirs(path, exist_ok=True)
         path = join(path, file_name)
@@ -141,7 +141,7 @@ class FileManager(UserDict):
                 f.write(data)
             else:
                 f.write('\n'.join(
-                        [f if isinstance(f, str) else str(f) for f in data]))
+                    [f if isinstance(f, str) else str(f) for f in data]))
 
     def csv_save(self, name: str, data: Union[list, set, tuple],
                  headers: str, mode='w'):
@@ -153,10 +153,10 @@ class FileManager(UserDict):
         data.insert(0, headers)
         self.save(name, data, mode)
 
-    def json_save(self, name: str, data, default=None, mode="w", **kwargs):
+    def json_save(self, name: str, data, mode="w", **dump_kwargs):
         self.file_types[name] = 'json'
         with open(self.get_path(name), mode) as f:
-            json.dump(data, f, indent=2, default=default, **kwargs)
+            json.dump(data, f, **dump_kwargs)
 
     def yaml_save(self, name: str, data, mode="w", **kwargs):
         self.file_types[name] = 'yaml'
